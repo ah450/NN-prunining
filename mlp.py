@@ -50,8 +50,10 @@ class mlp(object):
 		print("y2", self.y2)
 
 	def online_train(self):
-		self.online_forward_pass(0)
-		self.display()
+		for j in range(0,200):
+			for i in range(0,self.points_count):
+				self.online_forward_pass(i)
+				self.back_propagate(i)
 
 	# NOTE : pruning requires pibolar
 	def squash(net):
@@ -62,10 +64,21 @@ class mlp(object):
 	def online_forward_pass(self, index):
 		self.y1_net = np.dot(self.w1,self.inputs[:,[index]])
 		self.y1 = mlp.segmoid(self.y1_net)
+
 		self.y1 = np.vstack((np.array([[1]]),self.y1))
 		self.y2_net = np.dot(self.w2,self.y1)
 		self.y2 = mlp.segmoid(self.y2_net)
 
+	def back_propagate(self, index):
+		error = self.targets[:,[index]] - self.y2
+		print(error)
+		delta1 = error * self.y2 * (1 - self.y2)
+		dw = self.eta * delta1 * self.y1
+		self.w2 += dw.transpose()
+		delta2 = np.dot(delta1, self.w2	).transpose() * (self.y1) * (1 - self.y1)
+		delta2 = delta2[1:,]
+		dw = self.eta * np.dot(delta2,self.inputs[:,[index]].transpose())
+		self.w1 += dw
 
 
 inputs = np.array([[-1,1],[-1,-1],[0,0],[1,0]]).transpose()
