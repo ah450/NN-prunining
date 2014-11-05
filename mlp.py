@@ -73,16 +73,16 @@ class mlp(object):
 		error = self.targets[:,[index]] - self.y2
 		print(error)
 		delta1 = error * self.y2 * (1 - self.y2)
-		dw = self.eta * delta1 * self.y1
-		self.w2 += dw.transpose()
-		delta2 = np.dot(delta1, self.w2	).transpose() * (self.y1) * (1 - self.y1)
+		dw = self.eta * np.dot(delta1, self.y1.transpose())
+		self.w2 += dw
+		delta2 = np.dot(self.w2.transpose(), delta1) * (self.y1) * (1 - self.y1)
 		delta2 = delta2[1:,]
 		dw = self.eta * np.dot(delta2,self.inputs[:,[index]].transpose())
 		self.w1 += dw
 
 
 inputs = np.array([[-1,1],[-1,-1],[0,0],[1,0]]).transpose()
-targets = np.array([[1,1,0,0]])
+targets = np.array([[1,1,0,0],[0,0,1,1]])
 
 p = mlp(inputs, targets, 4, 1)
 p.online_train()
