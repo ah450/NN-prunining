@@ -58,18 +58,20 @@ class mlp(object):
 				self.back_propagate(i)
 
 	# NOTE : pruning requires pibolar
-	def squash(net):
-		out = 1 / (1+ mt.pow(mt.e,-1*net) )
+	def segmoid(net):
+		out = 0.5 * ( (1 - np.exp(-net))/(1 + np.exp(-net)) )
 		return out
-	segmoid = np.vectorize(squash)
+	
 
 
 	def online_forward_pass(self, index):
 		self.y1_net = np.dot(self.w1,self.inputs[:,[index]])
 		self.y1 = mlp.segmoid(self.y1_net)
-		for i in range(0,self.hidden_nodes_count):
-				lateral_i = np.dot(self.lateral())
+		for i in range(1,self.hidden_nodes_count):
+				lateral_i = np.dot(self.lateral[i,:i],self.y1[:i])
+				print(lateral_i.shape)
 				self.y1_net[i] += lateral_i
+				self.y1[i] = mlp.segmoid(self.y1_net[i])
 
 		self.y1 = np.vstack((np.array([[1]]),self.y1))
 		self.y2_net = np.dot(self.w2,self.y1)
@@ -77,7 +79,6 @@ class mlp(object):
 
 	def back_propagate(self, index):
 		error = self.targets[:,[index]] - self.y2
-		print(error)
 		delta1 = error * self.y2 * (1 - self.y2)
 		dw = self.eta * np.dot(delta1, self.y1.transpose())
 		self.w2 += dw
